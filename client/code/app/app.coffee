@@ -2,7 +2,7 @@ document.title = 'CoffeScript Wizardry'
 
 class window.Map
     constructor: (@w,@h,@name) ->
-        @data = (Math.round(Math.random()-0.25) for x in [1..@w] for y in [1..@h]) #Generate our 2D Array for our map
+        @data = (Math.round(Math.random()-0.4) for x in [1..@w] for y in [1..@h]) #Generate our 2D Array for our map
         #Comprised of 1's and 0's
     
         @data[0][@h-1] = 2; @data[@w-1][0] = 3 #Set Start in bottom left, End in top right. always.
@@ -44,7 +44,7 @@ class window.Map
 gameState =
     setup: ->
         console.time "setup"
-        @map = new Map(15,15) #Generate a new map Object, 10 by 10 grid.
+        @map = new Map(100,100) #Generate a new map Object, 10 by 10 grid.
         @world = new jaws.Rect(0,0,@map.w*32,@map.h*32)
         #console.time 'setup' #Timer Start
         @blocks = new jaws.SpriteList()
@@ -62,43 +62,46 @@ gameState =
 
         @player = new jaws.Sprite
             image: "/img/player.gif"
-            x: (@map.start.x*32)+14 #convert map data into the 32 style grid. Offset by half the width of the sprite
-            y: (@map.start.y*32)+14 #Same here really
+            x: (@map.start.x*32) #convert map data into the 32 style grid. Offset by half the width of the sprite
+            y: (@map.start.y*32)-28 #Same here really
             #anchor: "center"
 
         @player.move = (x,y)->
-            console.log(x,y)
             @x += x
-            if @tiles.atRect(@player.rect()).length > 0
+            if gameState.tiles.atRect(gameState.player.rect()).length > 0
                 @x -= x
+            #if gameState.world.atRect(gameState.player.rect()).length > 0
+            #    @x -= x
+
 
             @y += y
-            if @tiles.atRect(@player.rect()).length > 0
+            if gameState.tiles.atRect(gameState.player.rect()).length > 0
                 @y -= y
+            #if gameState.world.atRect(gameState.player.rect())>length > 0
+            #    @y -= y
 
         jaws.context.mozImageSmoothingEnabled = false
         jaws.preventDefaultKeys(["up","down","left","right","space"])
 
         console.timeEnd "setup" #Timer End
     update: ->
-        console.log(@player)
         if jaws.pressed("left")
-            @player.move(-2,0); console.log("left")
+            @player.move(-2,0)
         if jaws.pressed("right")
-            @player.move(2,0); console.log("right")
+            @player.move(2,0)
         if jaws.pressed("up")
-            @player.move(0,-2); console.log("up")
+            @player.move(0,-2)
         if jaws.pressed("down")
-            @player.move(0,2); console.log("down")
+            @player.move(0,2)
 
-        @viewport.centerAround(@player)
+        @viewport.centerAround(gameState.player)
+        #jaws.forceInsideCanvas( @player )
 
     draw: ->
         jaws.clear()
-
-        @viewport.apply ->
-            gameState.blocks.draw()
-            gameState.player.draw()
+        
+        @viewport.drawTileMap @tiles
+        @viewport.draw @player
 
 
 jaws.assets.add('/img/wall.png','/img/player.gif')
