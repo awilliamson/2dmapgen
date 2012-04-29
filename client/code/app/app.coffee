@@ -2,32 +2,30 @@ document.title = 'CoffeScript Wizardry'
 
 class window.Map
     constructor: (@w,@h,@name) ->
-        @map = (Math.round(Math.random()-0.2) for x in [1..@w] for y in [1..@h]) #Generate our 2D Array for our map
+        @data = (Math.round(Math.random()-0.3) for x in [1..@w] for y in [1..@h]) #Generate our 2D Array for our map
         #Comprised of 1's and 0's
     
-        @map[0][@h-1] = 2; @map[@w-1][0] = 3 #Set Start in bottom left, End in top right. always.
+        @data[0][@h-1] = 2; @data[@w-1][0] = 3 #Set Start in bottom left, End in top right. always.
         
         return @this
         
-    types: ["space","wall","start","end"] #Types array, so we can lookup terrain types based upon cell value
+    types: ["Walkable Space","Wall","Start","End"] #Types array, so we can lookup terrain types based upon cell value
         
     validReference: (x,y) -> #Check is a cell is within the bounds of our map
         return (x <= @w & x > 0) && (y <= @h & x > 0) #If it's less than or equal to the limits of the system, 10,10
         #Above will return TRUE if both params are within the bounds, otherwise false.
 
-    getIDByType: (type) -> #Get the positions of all cells with Type 'type'
-        console.time 'getIDByType'
-        #console.log(    @getCellType(x,y) for y in [1..@h] for x in [1..@w]     ) #Print out our map in terms of type terrain
-        
-        type = @types.indexOf(type) if type in @types
+    getCoordByType: (type) -> #Get the positions of all cells with Type 'type'
+        console.time 'getCoordByType'
+
         array = []
         
         for y in [0...@h] 
             for x in [0...@w] 
-                if (@map[x][y] == type)
-                    array.push( [x,y]   )
+                if @data[x][y] is type
+                    array.push( [x,y] )
                     
-        console.timeEnd 'getIDByType'
+        console.timeEnd 'getCoordByType'
         return array    
         
     getCellType: (x,y) -> #Check the cell type of a given cell
@@ -38,29 +36,29 @@ class window.Map
 
 gameState =
     setup: ->
-        console.log "Setup called"
-        console.time 'setup' #Timer Start
+        console.time "setup"
+        @map = new Map(10,10) #Generate a new map Object, 10 by 10 grid.
+        #console.time 'setup' #Timer Start
         @blocks = new jaws.SpriteList()
-        for coord in genMap.getIDByType("wall")
+        for coord in @map.getCoordByType(1)
             @blocks.push new jaws.Sprite
                 image: "/img/wall.png"
                 x: coord[0]*32
                 y: coord[1]*32
         @tiles = new jaws.TileMap
-            size: [genMap.w,genMap.h]
+            size: [@map.w,@map.h]
             cell_size: [32,32]
         @tiles.push(@blocks)
-        console.timeEnd 'setup' #Timer End
+        console.timeEnd "setup" #Timer End
     update: ->
 
     draw: ->
         jaws.clear()
         @blocks.draw()
 
-genMap = new Map(1000,1000) #Generate a new map Object, 10 by 10 grid.
+
 jaws.assets.add('/img/wall.png')
 jaws.start(gameState)
-
 #console.log("(#{coord[0]},#{coord[1]})") for coord in genMap.getIDByType("Wall")
 
 #randx = Math.floor(Math.random()*newMap.w)+1
