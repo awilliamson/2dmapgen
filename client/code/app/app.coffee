@@ -2,7 +2,7 @@ document.title = 'CoffeScript Wizardry'
 
 class window.Map
     constructor: (@w,@h,@name) ->
-        @data = (Math.round(Math.random()) for x in [1..@w] for y in [1..@h]) #Generate our 2D Array for our map
+        @data = (Math.round(Math.random()-0.25) for x in [1..@w] for y in [1..@h]) #Generate our 2D Array for our map
         #Comprised of 1's and 0's
     
         @data[0][@h-1] = 2; @data[@w-1][0] = 3 #Set Start in bottom left, End in top right. always.
@@ -44,7 +44,7 @@ class window.Map
 gameState =
     setup: ->
         console.time "setup"
-        @map = new Map(5,5) #Generate a new map Object, 10 by 10 grid.
+        @map = new Map(15,15) #Generate a new map Object, 10 by 10 grid.
         @world = new jaws.Rect(0,0,@map.w*32,@map.h*32)
         #console.time 'setup' #Timer Start
         @blocks = new jaws.SpriteList()
@@ -64,41 +64,32 @@ gameState =
             image: "/img/player.gif"
             x: (@map.start.x*32)+14 #convert map data into the 32 style grid. Offset by half the width of the sprite
             y: (@map.start.y*32)+14 #Same here really
-            anchor: "center"
+            #anchor: "center"
 
-        @player.move ->
-            @x += @vx
-            if @tiles.atRect(player.rect()).length > 0
-                @x -= @vx
-            @vx = 0
+        @player.move = (x,y)->
+            console.log(x,y)
+            @x += x
+            if @tiles.atRect(@player.rect()).length > 0
+                @x -= x
 
-            @y += @vx
-            @block = @tiles.atRect(player.rect())[0]
-            if @block
-                if @vy > 0
-                    @can_jump = true
-                    @y = block.rect().y - 1#
+            @y += y
+            if @tiles.atRect(@player.rect()).length > 0
+                @y -= y
 
-                else if @vy < 0
-                    @y = block.rect().bottom + @height
-                @vy = 0
-
-            jaws.context.mozImageSmoothingEnabled = false
-            jaws.preventDefaultKeys(["up","down","left","right","space"])
+        jaws.context.mozImageSmoothingEnabled = false
+        jaws.preventDefaultKeys(["up","down","left","right","space"])
 
         console.timeEnd "setup" #Timer End
     update: ->
-        @player.vx = 0
+        console.log(@player)
         if jaws.pressed("left")
-            @player.vx -= 2
+            @player.move(-2,0); console.log("left")
         if jaws.pressed("right")
-            @player.vx  += 2
+            @player.move(2,0); console.log("right")
         if jaws.pressed("up")
-            @player.vy -= 2
+            @player.move(0,-2); console.log("up")
         if jaws.pressed("down")
-            @player.vy += 2
-
-        @player.move()
+            @player.move(0,2); console.log("down")
 
         @viewport.centerAround(@player)
 
@@ -106,12 +97,15 @@ gameState =
         jaws.clear()
 
         @viewport.apply ->
-            @blocks.draw()
-            @player.draw()
+            gameState.blocks.draw()
+            gameState.player.draw()
 
 
 jaws.assets.add('/img/wall.png','/img/player.gif')
 jaws.start(gameState)
+
+module.exports = gameState
+
 #console.log("(#{coord[0]},#{coord[1]})") for coord in genMap.getIDByType("Wall")
 
 #randx = Math.floor(Math.random()*newMap.w)+1
