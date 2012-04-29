@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Brunch with coffee
 This is a simple coffee skeleton for [Brunch](http://brunch.io/).
 
@@ -63,3 +64,9 @@ Versions of software the skeleton uses:
 
 The license is [public domain](http://creativecommons.org/publicdomain/zero/1.0/).
 Use it however you want.
+=======
+2dmapgen
+========
+
+2DPathfinding, TopDownGame, Written in Js using coffeescript and other wonderful things
+>>>>>>> 7a3c7f8a55f56e2330b4f4d9decfb871b86458d3
