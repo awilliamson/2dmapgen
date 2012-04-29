@@ -58,11 +58,9 @@ gameState =
 genMap = new Map(10,10) #Generate a new map Object, 10 by 10 grid.
 jaws.unpack
 jaws.assets.add('img/wall.png')
-#game_loop = new jaws.GameLoop(gameState, {fps: 60})
+game_loop = new jaws.GameLoop(gameState, {fps: 60})
 jaws.start(new jaws.GameLoop(gameState, {fps: 60}))
-console.log("(#{coord[0]},#{coord[1]})") for coord in genMap.getIDByType("Wall")
-while 1
-    jaws.start(new jaws.GameLoop(gameState, {fps: 60}))
+#console.log("(#{coord[0]},#{coord[1]})") for coord in genMap.getIDByType("Wall")
 
 #randx = Math.floor(Math.random()*newMap.w)+1
 #randy = Math.floor(Math.random()*newMap.h)+1
