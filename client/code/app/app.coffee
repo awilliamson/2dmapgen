@@ -1,8 +1,8 @@
-document.title = 'CoffeScript Wizardry'
+document.title = '2DMapGeneration by Ashley Williamson'
 
 class window.Map
     constructor: (@w,@h,@name) ->
-        @data = (Math.round(Math.random()-0.4) for x in [1..@w] for y in [1..@h]) #Generate our 2D Array for our map
+        @data = (Math.round(Math.random()-0.25) for x in [1..@w] for y in [1..@h]) #Generate our 2D Array for our map
         #Comprised of 1's and 0's
     
         @data[0][@h-1] = 2; @data[@w-1][0] = 3 #Set Start in bottom left, End in top right. always.
@@ -46,11 +46,12 @@ gameState =
         console.time "setup"
         @map = new Map(100,100) #Generate a new map Object, 10 by 10 grid.
         @world = new jaws.Rect(0,0,@map.w*32,@map.h*32)
+        #@spriteSheet = new jaws.Animation({sprite_sheet: "/img/16x16.png", frame_size: [16,16], orientation: "right", scale: 2})
         #console.time 'setup' #Timer Start
         @blocks = new jaws.SpriteList()
         for coord in @map.getCoordByType(1)
             @blocks.push new jaws.Sprite
-                image: "/img/wall.png" #Image is 32x32 hence scaling everywhere
+                image: "/img/wall.png"#@spriteSheet.slice(8,0) #Image is 32x32 hence scaling everywhere
                 x: coord[0]*32
                 y: coord[1]*32
         @tiles = new jaws.TileMap
@@ -62,33 +63,43 @@ gameState =
 
         @player = new jaws.Sprite
             image: "/img/player.png"
-            x: (@map.start.x) #convert map data into the 32 style grid. Offset by half the width of the sprite
-            y: (@map.start.y) #Same here really
-            #anchor: "center"
+            x: (@map.start.x)*32 #convert map data into the 32 style grid. Offset by half the width of the sprite
+            y: (@map.start.y)-16*32 #Same here really
+            anchor: "top_left"
 
         @player.move = (x,y)->
             @x += x
-            if gameState.tiles.atRect(gameState.player.rect()).length > 0
+            if gameState.tiles.atRect(gameState.player.rect()).length > 0.15
                 @x -= x
 
             @y += y
-            if gameState.tiles.atRect(gameState.player.rect()).length > 0
+            if gameState.tiles.atRect(gameState.player.rect()).length > 0.15
                 @y -= y
-        @player.move = _.throttle @player.move, 100 
+        @player.move = _.throttle @player.move, 10
 
-        jaws.context.mozImageSmoothingEnabled = false
+        jaws.context.mozImageSmoothingEnabled = true
         jaws.preventDefaultKeys(["up","down","left","right","space"])
 
         console.timeEnd "setup" #Timer End
     update: ->
         if jaws.pressed("left")
-            @player.move(-32,0)
+            @player.move(-8,0)
         if jaws.pressed("right")
-            @player.move(32,0)
+            @player.move(8,0)
         if jaws.pressed("up")
-            @player.move(0,-32)
+            @player.move(0,-8)
         if jaws.pressed("down")
-            @player.move(0,32)
+            @player.move(0,8)
+
+        if  jaws.pressed("down") & jaws.pressed("right")
+            @player.move(8,8)
+        if  jaws.pressed("down") & jaws.pressed("left")
+            @player.move(-8,8)
+
+        if  jaws.pressed("up") & jaws.pressed("right")
+            @player.move(8,-8)
+        if  jaws.pressed("up") & jaws.pressed("left")
+            @player.move(-8,-8)
 
         @viewport.forceInsideVisibleArea @player, 0
         @viewport.centerAround @player
@@ -100,6 +111,7 @@ gameState =
         @viewport.draw @player
 
 
+jaws.unpack()
 jaws.assets.add('/img/wall.png','/img/player.png')
 jaws.start(gameState)
 
