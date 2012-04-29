@@ -37,28 +37,28 @@ class window.Map
 
 gameState =
     setup: ->
+        console.log "Setup called"
         #console.time 'setup' #Timer Start
-        blocks = new jaws.SpriteList()
+        @blocks = new jaws.SpriteList()
         for coord in genMap.getIDByType("Wall")
-            blocks.push new Sprite
+            @blocks.push new jaws.Sprite
                 image: "/img/wall.png"
-                x: coord[0]
-                y: coord[1]
-        tiles = new jaws.TileMap
+                x: coord[0]*32
+                y: coord[1]*32
+        @tiles = new jaws.TileMap
             size: [genMap.w,genMap.h]
             cell_size: [32,32]
-        tiles.push(blocks)
+        @tiles.push(@blocks)
         #console.timeEnd 'setup' #Timer End
     update: ->
 
     draw: ->
         jaws.clear()
-        blocks.draw()
+        @blocks.draw()
 
 genMap = new Map(10,10) #Generate a new map Object, 10 by 10 grid.
 jaws.assets.add('/img/wall.png')
-game_loop = new jaws.GameLoop(gameState, {fps: 60})
-jaws.start(new jaws.GameLoop(gameState, {fps: 60}))
+jaws.start(gameState)
 #console.log("(#{coord[0]},#{coord[1]})") for coord in genMap.getIDByType("Wall")
 
 #randx = Math.floor(Math.random()*newMap.w)+1
