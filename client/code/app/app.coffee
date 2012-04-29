@@ -61,24 +61,20 @@ gameState =
         @viewport = new jaws.Viewport({max_x: @world.width,max_y: @world.height})
 
         @player = new jaws.Sprite
-            image: "/img/player.gif"
-            x: (@map.start.x*32) #convert map data into the 32 style grid. Offset by half the width of the sprite
-            y: (@map.start.y*32)-28 #Same here really
+            image: "/img/player.png"
+            x: (@map.start.x) #convert map data into the 32 style grid. Offset by half the width of the sprite
+            y: (@map.start.y) #Same here really
             #anchor: "center"
 
         @player.move = (x,y)->
             @x += x
             if gameState.tiles.atRect(gameState.player.rect()).length > 0
                 @x -= x
-            #if gameState.world.atRect(gameState.player.rect()).length > 0
-            #    @x -= x
-
 
             @y += y
             if gameState.tiles.atRect(gameState.player.rect()).length > 0
                 @y -= y
-            #if gameState.world.atRect(gameState.player.rect())>length > 0
-            #    @y -= y
+        @player.move = _.throttle @player.move, 100 
 
         jaws.context.mozImageSmoothingEnabled = false
         jaws.preventDefaultKeys(["up","down","left","right","space"])
@@ -86,16 +82,16 @@ gameState =
         console.timeEnd "setup" #Timer End
     update: ->
         if jaws.pressed("left")
-            @player.move(-2,0)
+            @player.move(-32,0)
         if jaws.pressed("right")
-            @player.move(2,0)
+            @player.move(32,0)
         if jaws.pressed("up")
-            @player.move(0,-2)
+            @player.move(0,-32)
         if jaws.pressed("down")
-            @player.move(0,2)
+            @player.move(0,32)
 
-        @viewport.centerAround(gameState.player)
-        #jaws.forceInsideCanvas( @player )
+        @viewport.forceInsideVisibleArea @player, 0
+        @viewport.centerAround @player
 
     draw: ->
         jaws.clear()
@@ -104,7 +100,7 @@ gameState =
         @viewport.draw @player
 
 
-jaws.assets.add('/img/wall.png','/img/player.gif')
+jaws.assets.add('/img/wall.png','/img/player.png')
 jaws.start(gameState)
 
 module.exports = gameState
