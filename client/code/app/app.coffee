@@ -2,88 +2,90 @@ document.title = '2DMapGeneration by Ashley Williamson'
 
 class window.Map
     constructor: (@w,@h,@name) ->
-        @data = (Math.round(Math.random()-0.25) for x in [1..@w] for y in [1..@h]) #Generate our 2D Array for our map
-        #Comprised of 1's and 0's
+        # Generate our 2D Array, with weighted, rounded, random values.
+        # This allows us to ensure that we will have majority walkable space within the map.
+        # Random for now produces 1's or 0's to populate the array.
+        # This will cycle thus: for x < @w, x++.
+        # Put all this information into a 2D Array, this.data.
+        @data = (Math.round(Math.random()-0.25) for x in [0...@w] for y in [0...@h])
     
-        @data[0][@h-1] = 2; @data[@w-1][0] = 3 #Set Start in bottom left, End in top right. always.
+        @data[0][@h-1] = 2; @data[@w-1][0] = 3 # Set Start in bottom left, End in top right.Start = 2, End = 3.
 
-        @start = 
+        @start = # Set objects for start and end locations, these will be used later for player positioning, and is also generally useful to reference.
             x: 0
-            y: @h #not -1, because jaws co-ord system will offset it by a whole row somehow :/
+            y: @h
         @end = 
             x: @w
             y: 0
         
-        return @this
+        return @ # Explicitally return this, otherwise it will default to return @end in this case.
         
-    types: ["space","wall","start","end"] #Types array, so we can lookup terrain types based upon cell value
+    types: ["space","wall","start","end"] # Types array, allows us to lookup terrain types. Index matches with the terrain type, and can be used in conjunction with out nodes to display a map.
         
-    validReference: (x,y) -> #Check is a cell is within the bounds of our map
-        return (x <= @w & x > 0) && (y <= @h & x > 0) #If it's less than or equal to the limits of the system, 10,10
-        #Above will return TRUE if both params are within the bounds, otherwise false.
+    validReference: (x,y) -> # Validate a cell, given by (x,y)
+        return (x <= @w & x > 0) && (y <= @h & x > 0) # If both x and y are within the upper bounds, and are greater than 0, this will return True, only in that case.
 
-    getCoordByType: (type) -> #Get the positions of all cells with Type 'type'
-        console.time 'getCoordByType'
+    getCoordByType: (type) -> # Get an array containing cell positions of all cells that have a terrain type,'type', and return it.
+        console.time 'getCoordByType' # Used to debug how long it will take to sort all of the cells within the map, this is given by xy.
 
         array = []
         
-        for y in [0...@h] 
-            for x in [0...@w] 
+        for y in [0...@h] # y is iterated first to ensure proper formatting of our map for user display.
+            for x in [0...@w]
                 if @data[x][y] is type
-                    array.push( [x,y] )
+                    array.push([x,y])
                     
         console.timeEnd 'getCoordByType'
         return array    
         
-    getCellType: (x,y) -> #Check the cell type of a given cell
-        if @validReference(x,y) #Validate the co-ords
-            value = @map[x-1][y-1] #Look up that value, input is 1-n based, array is 0-n-1 based.    
-            #return "Cell (#{x},#{y}) has a value of, #{value}, and is of Type, #{@types[value]}."
-            return @types[value]
+    getCellType: (x,y) -> # Check the terrain type of a given cell, given by (x,y)
+        if @validReference(x,y) # Validate the the given co-ordinates before proceeding.
+            value = @map[x-1][y-1] # Get the value of the cell at the given location. x-1, and y-1 are used because input is 1-n based, and the array is 0-(n-1) based.    
+            return @types[value] # Use the previously defined types array, use the value from the cell to return the string which corresponds to it's type. Eg, value of 1, would result in "wall"
 
-gameState =
-    setup: ->
-        console.time "setup"
-        @map = new Map(1000,1000) #Generate a new map Object, 10 by 10 grid.
-        @world = new jaws.Rect(0,0,@map.w*32,@map.h*32)
+gameState = # Used to setup the game space for our level, several of these can be used for menu's etc.
+    setup: -> # Called initially to setup all the level.
+        console.time "setup" # Debug timer to see how long it takes to setup the level.
+        @map = new Map(1000,1000) # Generate a new map Object, given x and y.
+        @world = new jaws.Rect(0,0,@map.w*32,@map.h*32) # Create a jaws.Rect, this will represent the bounds of our 'world'
         #@spriteSheet = new jaws.Animation({sprite_sheet: "/img/16x16.png", frame_size: [16,16], orientation: "right", scale: 2})
         #console.time 'setup' #Timer Start
-        @blocks = new jaws.SpriteList()
-        for coord in @map.getCoordByType(1)
-            @blocks.push new jaws.Sprite
-                image: "/img/wall.png"#@spriteSheet.slice(8,0) #Image is 32x32 hence scaling everywhere
-                x: coord[0]*32
+        @blocks = new jaws.SpriteList() # Make a new SpriteList, this will be used for playing our walls.
+        for coord in @map.getCoordByType(1) # For each entry in the array responsible for walls.
+            @blocks.push new jaws.Sprite # Make a new sprite, and push it.
+                image: "/img/wall.png" # Setup parameters for the Sprite, args can be found in jaws documentation.
+                x: coord[0]*32 # Use the x,y co-ordinates from each entry, *32 as our sprites are 32x32 based, ensures correct spacing.
                 y: coord[1]*32
-        @tiles = new jaws.TileMap
-            size: [@map.w,@map.h]
-            cell_size: [32,32]
-        @tiles.push(@blocks)
+        @tiles = new jaws.TileMap # Create a tilemap, this will be later used to render our walls. Ground is currently not a tilemap.
+            size: [@map.w,@map.h] # Size set to the bounds of our map
+            cell_size: [32,32] # Define how big each 'node' will be, in this instance it's 32x32, the size of our wall sprite.
+        @tiles.push(@blocks) #Push our blocks, 'walls', to this tileMap so we can render later.
 
-        @viewport = new jaws.Viewport({max_x: @world.width,max_y: @world.height})
+        @viewport = new jaws.Viewport({max_x: @world.width,max_y: @world.height}) # Make a new viewport
 
-        @player = new jaws.Sprite
-            image: "/img/player.png"
-            x: 16 # @map.start.x*32 #convert map data into the 32 style grid. Offset by half the width of the sprite
-            y: 16 # @map.start.y*32 #Same here really
+        @player = new jaws.Sprite # Create a player
+            image: "/img/player.png" # Setup parameters for the player. Player.png is 30x30, to avoid collision issues, and such.
+            x: 16 # Currently starts in the top left corner, offset due to the anchor position being in the center.
+            y: 16 
             anchor: "center"
 
-        @player.move = (x,y)->
-            @x += x
-            if gameState.tiles.atRect(gameState.player.rect()).length > 0
-                @x -= x
+        @player.move = (x,y)-> # Responsible for moving our player, given move (x,y).
+            @x += x # This will move our player along by x, note: Can also be a negative number.
+            if gameState.tiles.atRect(gameState.player.rect()).length > 0 # Check collisions with out tileMap (just walls for now)
+                @x -= x #Negate the movement effects if we're gonna go into a wall.
 
             @y += y
             if gameState.tiles.atRect(gameState.player.rect()).length > 0
                 @y -= y
-        @player.move = _.throttle @player.move, 200
+        @player.move = _.throttle @player.move, 200 # Throttle move so we don't fly along at however fast the code can execute. Value of 200, limits it to every 200ms.
 
-        jaws.context.mozImageSmoothingEnabled = true
-        jaws.preventDefaultKeys(["up","down","left","right","space"])
+        jaws.context.mozImageSmoothingEnabled = true # Smoothing, see documentation.
+        jaws.preventDefaultKeys(["up","down","left","right","space"]) # Array of keys we will tell jaws to be looking for.
 
-        console.timeEnd "setup" #Timer End
-    update: ->
-        if jaws.pressed("left")
-            @player.move(-32,0)
+        console.timeEnd "setup" # Timer End
+    update: -> # Called every game tick
+        if jaws.pressed("left") # Check if we've pressed any keys
+            @player.move(-32,0) # Move appropriately
         if jaws.pressed("right")
             @player.move(32,0)
         if jaws.pressed("up")
@@ -91,46 +93,21 @@ gameState =
         if jaws.pressed("down")
             @player.move(0,32)
 
-        #if  jaws.pressed("down") & jaws.pressed("right")
-        #    @player.move(4,4)
-        #if  jaws.pressed("down") & jaws.pressed("left")
-        #    @player.move(-4,4)#
+        # For now this is how we are ensuring our player does not leave the map.
+        # Buffer 16, as our tiles are 32x32, and our anchor point for a player is in the center.
+        # The buffer is taken from you tile dimensions, not the image dimensions.
+        @viewport.forceInsideVisibleArea @player, 16
+        @viewport.centerAround @player # Focus the viewpoint around the player
 
-        #if  jaws.pressed("up") & jaws.pressed("right")
-        #    @player.move(4,-4)
-        #if  jaws.pressed("up") & jaws.pressed("left")
-        #    @player.move(-4,-4)
-
-        @viewport.forceInsideVisibleArea @player, 0
-        @viewport.centerAround @player
-
-    draw: ->
-        jaws.clear()
+    draw: -> # Called every game tick after update
+        jaws.clear() # Clear the screen
         
-        @viewport.drawTileMap @tiles
-        @viewport.draw @player
+        @viewport.drawTileMap @tiles # Draw the tiles, based upon the viewport. This will ensure we don't draw all the tiles every tick.
+        @viewport.draw @player # Draw the player, based upon the viewport.
 
 
-jaws.unpack()
-jaws.assets.add('/img/wall.png','/img/player.png')
-jaws.start(gameState)
+jaws.unpack() # Unpack jaws into global 
+jaws.assets.add('/img/wall.png','/img/player.png') # Add any images we've used.
+jaws.start(gameState) # Start our game using the level gameState
 
-module.exports = gameState
-
-#console.log("(#{coord[0]},#{coord[1]})") for coord in genMap.getIDByType("Wall")
-
-#randx = Math.floor(Math.random()*newMap.w)+1
-#randy = Math.floor(Math.random()*newMap.h)+1
-
-#console.log randx
-#console.log randy
-
-#console.log newMap #Log this new object
-#console.time 'getCellType'
-#console.log "Co-ordinates (#{randx},#{randy}) have type #{newMap.getCellType(randx,randy)}" #Do some cellType Lookups
-#console.timeEnd 'getCellType'
-#console.log newMap.getCellType(1,10)
-#console.log newMap.getCellType(10,1)
-#console.log newMap.getIDByType("Wall") #Lookup the ID's of all cells with type Wall.
-
-#console.time 'Display Walkable Array + Entries'
+module.exports = gameState # CommonJS module.
