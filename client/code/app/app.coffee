@@ -16,7 +16,7 @@ class window.Map
         
         return @this
         
-    types: ["Walkable Space","Wall","Start","End"] #Types array, so we can lookup terrain types based upon cell value
+    types: ["space","wall","start","end"] #Types array, so we can lookup terrain types based upon cell value
         
     validReference: (x,y) -> #Check is a cell is within the bounds of our map
         return (x <= @w & x > 0) && (y <= @h & x > 0) #If it's less than or equal to the limits of the system, 10,10
@@ -44,7 +44,7 @@ class window.Map
 gameState =
     setup: ->
         console.time "setup"
-        @map = new Map(100,100) #Generate a new map Object, 10 by 10 grid.
+        @map = new Map(1000,1000) #Generate a new map Object, 10 by 10 grid.
         @world = new jaws.Rect(0,0,@map.w*32,@map.h*32)
         #@spriteSheet = new jaws.Animation({sprite_sheet: "/img/16x16.png", frame_size: [16,16], orientation: "right", scale: 2})
         #console.time 'setup' #Timer Start
@@ -63,19 +63,19 @@ gameState =
 
         @player = new jaws.Sprite
             image: "/img/player.png"
-            x: (@map.start.x)*32 #convert map data into the 32 style grid. Offset by half the width of the sprite
-            y: (@map.start.y)-16*32 #Same here really
-            anchor: "top_left"
+            x: 16 # @map.start.x*32 #convert map data into the 32 style grid. Offset by half the width of the sprite
+            y: 16 # @map.start.y*32 #Same here really
+            anchor: "center"
 
         @player.move = (x,y)->
             @x += x
-            if gameState.tiles.atRect(gameState.player.rect()).length > 0.15
+            if gameState.tiles.atRect(gameState.player.rect()).length > 0
                 @x -= x
 
             @y += y
-            if gameState.tiles.atRect(gameState.player.rect()).length > 0.15
+            if gameState.tiles.atRect(gameState.player.rect()).length > 0
                 @y -= y
-        @player.move = _.throttle @player.move, 10
+        @player.move = _.throttle @player.move, 200
 
         jaws.context.mozImageSmoothingEnabled = true
         jaws.preventDefaultKeys(["up","down","left","right","space"])
@@ -83,23 +83,23 @@ gameState =
         console.timeEnd "setup" #Timer End
     update: ->
         if jaws.pressed("left")
-            @player.move(-8,0)
+            @player.move(-32,0)
         if jaws.pressed("right")
-            @player.move(8,0)
+            @player.move(32,0)
         if jaws.pressed("up")
-            @player.move(0,-8)
+            @player.move(0,-32)
         if jaws.pressed("down")
-            @player.move(0,8)
+            @player.move(0,32)
 
-        if  jaws.pressed("down") & jaws.pressed("right")
-            @player.move(8,8)
-        if  jaws.pressed("down") & jaws.pressed("left")
-            @player.move(-8,8)
+        #if  jaws.pressed("down") & jaws.pressed("right")
+        #    @player.move(4,4)
+        #if  jaws.pressed("down") & jaws.pressed("left")
+        #    @player.move(-4,4)#
 
-        if  jaws.pressed("up") & jaws.pressed("right")
-            @player.move(8,-8)
-        if  jaws.pressed("up") & jaws.pressed("left")
-            @player.move(-8,-8)
+        #if  jaws.pressed("up") & jaws.pressed("right")
+        #    @player.move(4,-4)
+        #if  jaws.pressed("up") & jaws.pressed("left")
+        #    @player.move(-4,-4)
 
         @viewport.forceInsideVisibleArea @player, 0
         @viewport.centerAround @player
