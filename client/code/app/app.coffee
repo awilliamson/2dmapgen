@@ -7,23 +7,29 @@ class window.Map
         # Random for now produces 1's or 0's to populate the array.
         # This will cycle thus: for x < @w, x++.
         # Put all this information into a 2D Array, this.data.
+
+        @GRID_SPACING = 32
+
         @data = (Math.round(Math.random()-0.25) for x in [0...@w] for y in [0...@h])
+        #@data = (cell = 1 for x in [0...@w] for y in [0...@h]) # Generate a fully walled map
     
         @data[0][@h-1] = 2; @data[@w-1][0] = 3 # Set Start in bottom left, End in top right.Start = 2, End = 3.
 
         @start = # Set objects for start and end locations, these will be used later for player positioning, and is also generally useful to reference.
-            x: 0
-            y: @h
+            x: @GRID_SPACING/2+@GRID_SPACING
+            y: (@h*@GRID_SPACING)-@GRID_SPACING/2 - @GRID_SPACING
         @end = 
-            x: @w
-            y: 0
+            x: @w*@GRID_SPACING
+            y: (@GRID_SPACING/2)-@GRID_SPACING/2
         
-        return @ # Explicitally return this, otherwise it will default to return @end in this case.
+        console.log("Width and height are currently set to (#{@w},#{@h})")
+        console.log("Starting position currently set to (#{@start.x},#{@start.y})")
+        return this # Explicitally return this, otherwise it will default to return @end in this case.
         
     types: ["space","wall","start","end"] # Types array, allows us to lookup terrain types. Index matches with the terrain type, and can be used in conjunction with out nodes to display a map.
         
     validReference: (x,y) -> # Validate a cell, given by (x,y)
-        return (x <= @w & x > 0) && (y <= @h & x > 0) # If both x and y are within the upper bounds, and are greater than 0, this will return True, only in that case.
+        return (x <= @w & x > 0) and (y <= @h & x > 0) # If both x and y are within the upper bounds, and are greater than 0, this will return True, only in that case.
 
     getCoordByType: (type) -> # Get an array containing cell positions of all cells that have a terrain type,'type', and return it.
         console.time 'getCoordByType' # Used to debug how long it will take to sort all of the cells within the map, this is given by xy.
@@ -46,27 +52,29 @@ class window.Map
 gameState = # Used to setup the game space for our level, several of these can be used for menu's etc.
     setup: -> # Called initially to setup all the level.
         console.time "setup" # Debug timer to see how long it takes to setup the level.
-        @map = new Map(1000,1000) # Generate a new map Object, given x and y.
-        @world = new jaws.Rect(0,0,@map.w*32,@map.h*32) # Create a jaws.Rect, this will represent the bounds of our 'world'
+        @map = new Map(100,100) # Generate a new map Object, given x and y.
+        @world = new jaws.Rect(0,0,@map.w*@map.GRID_SPACING,@map.h*@map.GRID_SPACING) # Create a jaws.Rect, this will represent the bounds of our 'world'
         #@spriteSheet = new jaws.Animation({sprite_sheet: "/img/16x16.png", frame_size: [16,16], orientation: "right", scale: 2})
         #console.time 'setup' #Timer Start
         @blocks = new jaws.SpriteList() # Make a new SpriteList, this will be used for playing our walls.
         for coord in @map.getCoordByType(1) # For each entry in the array responsible for walls.
             @blocks.push new jaws.Sprite # Make a new sprite, and push it.
                 image: "/img/wall.png" # Setup parameters for the Sprite, args can be found in jaws documentation.
-                x: coord[0]*32 # Use the x,y co-ordinates from each entry, *32 as our sprites are 32x32 based, ensures correct spacing.
-                y: coord[1]*32
+                x: coord[0]*@map.GRID_SPACING # Use the x,y co-ordinates from each entry, *32 as our sprites are 32x32 based, ensures correct spacing.
+                y: coord[1]*@map.GRID_SPACING
         @tiles = new jaws.TileMap # Create a tilemap, this will be later used to render our walls. Ground is currently not a tilemap.
             size: [@map.w,@map.h] # Size set to the bounds of our map
-            cell_size: [32,32] # Define how big each 'node' will be, in this instance it's 32x32, the size of our wall sprite.
+            cell_size: [@map.GRID_SPACING,@map.GRID_SPACING] # Define how big each 'node' will be, in this instance it's 32x32, the size of our wall sprite.
         @tiles.push(@blocks) #Push our blocks, 'walls', to this tileMap so we can render later.
 
         @viewport = new jaws.Viewport({max_x: @world.width,max_y: @world.height}) # Make a new viewport
 
+
+        # TODO - Fix the y co-ordinate position, it won't go past 284 ???
         @player = new jaws.Sprite # Create a player
             image: "/img/player.png" # Setup parameters for the player. Player.png is 30x30, to avoid collision issues, and such.
-            x: 16 # Currently starts in the top left corner, offset due to the anchor position being in the center.
-            y: 16 
+            x: @map.start.x
+            y: @map.start.y # VERY STUPID Y CO-ORD
             anchor: "center"
 
         @player.move = (x,y)-> # Responsible for moving our player, given move (x,y).
@@ -92,6 +100,8 @@ gameState = # Used to setup the game space for our level, several of these can b
             @player.move(0,-32)
         if jaws.pressed("down")
             @player.move(0,32)
+        else if jaws.pressed("space")
+            console.log("Player is now at the co-ordinates (#{@player.x},#{@player.y})")
 
         # For now this is how we are ensuring our player does not leave the map.
         # Buffer 16, as our tiles are 32x32, and our anchor point for a player is in the center.
