@@ -80,8 +80,8 @@ gameState = # Used to setup the game space for our level, several of these can b
         # TODO - Fix the y co-ordinate position, it won't go past 284 ???
         @player = new jaws.Sprite # Create a player
             image: "/img/player.png" # Setup parameters for the player. Player.png is 30x30, to avoid collision issues, and such.
-            x: 0
-            y: 0
+            x: 400
+            y: 400
             anchor: "center"
 
         @player.move = (x,y)-> # Responsible for moving our player, given move (x,y).
@@ -113,7 +113,7 @@ gameState = # Used to setup the game space for our level, several of these can b
         # For now this is how we are ensuring our player does not leave the map.
         # Buffer 16, as our tiles are 32x32, and our anchor point for a player is in the center.
         # The buffer is taken from you tile dimensions, not the image dimensions.
-        @viewport.forceInsideVisibleArea @player, 16
+        @viewport.forceInside @player, 16
         @viewport.centerAround @player # Focus the viewpoint around the player
 
     draw: -> # Called every game tick after update
