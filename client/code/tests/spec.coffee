@@ -1,11 +1,10 @@
 # Write your [mocha](http://visionmedia.github.com/mocha/) specs here.
 
-should = require "should"
-app = require "../code/app/app.coffee"
+expect = chai.expect
 
 describe 'Map', ->
 	map = new Map(10,10)
-	map.should.exist
+	expect(map).to.exist
 	describe 'data', ->
-		map.data.length.should.equal(9)
-		map.data[0].length.should.equal(9)
+		expect(map.data.length).to.equal(10)
+		expect(map.data[0].length).to.equal(10)
