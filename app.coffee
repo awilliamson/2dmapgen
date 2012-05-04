@@ -20,6 +20,14 @@ ss.client.define 'main', {
 	css: 'app.styl',
 	tmpl: '*'
 }
+
+ss.client.define 'test', {
+	view: 'app.jade'
+	code: ['libs', 'app', 'tests', 'tests/libs'],
+	css:  ['app.styl', 'mocha/mocha.css'],
+	tmpl: '*'
+}
+
 ss.client.formatters.add require 'ss-coffee'
 ss.client.formatters.add require 'ss-stylus'
 ss.client.formatters.add require 'ss-jade'
@@ -30,7 +38,7 @@ ss.client.templateEngine.use require 'ss-jade'
 
 # Express Configuration
 
-app.configure -> 
+app.configure ->
 	app.use express.bodyParser()
 	app.use express.methodOverride()
 	app.use app.router
@@ -45,6 +53,12 @@ app.configure 'production', ->
 
 app.get '/', (req, res) -> # when the index is requested, render the view with jade
 	res.serve 'main'
+
+
+app.get '/test', (req, res) -> # when the index is requested, render the view with jade
+	res.serve 'test'
+	ss.client.send('lib', 'mocha', fs.readFileSync("./node_modules/mocha/mocha.js"))
+
 #	res.render 'index'
 
 #app.post '/upload', (req, res, next) -> 
