@@ -23,6 +23,7 @@
 		"ss-jade": "git://github.com/CyberWalrus/ss-jade.git"
     },
     "devDependencies": {
-        "mocha": "0.14.0"
+        "mocha": "0.14.x",
+        "should": "0.6.x"
     }
 }
