@@ -23,7 +23,7 @@ ss.client.define 'main', {
 
 ss.client.define 'test', {
 	view: 'app.jade'
-	code: ['libs', 'tests', 'app'],
+	code: ['libs', 'app', 'tests'],
 	css:  ['app.styl', 'mocha/mocha.css'],
 	tmpl: '*'
 }
@@ -57,7 +57,7 @@ app.get '/', (req, res) -> # when the index is requested, render the view with j
 
 app.get '/test', (req, res) -> # when the index is requested, render the view with jade
 	res.serve 'test'
-	ss.client.assets.send("code","test-start",'''setTimeout('mocha.setup("bdd"); require("/spec"); mocha.run()',3000)''')
+	#ss.client.assets.send("code","test-start",'''setTimeout('mocha.setup("bdd"); require("/spec"); mocha.run()',3000)''')
 #	ss.client.send('lib', 'mocha', fs.readFileSync("./node_modules/mocha/mocha.js"))
 
 #	res.render 'index'

@@ -13,8 +13,6 @@ class window.Map
     
         @data[0][@h-1] = 2; @data[@w-1][0] = 3 # Set Start in bottom left, End in top right.Start = 2, End = 3.
 
-        console.log("Width and height are currently set to (#{@w},#{@h})")
-        #console.log("Starting position currently set to (#{@start.x},#{@start.y})")
         return this # Explicitally return this, otherwise it will default to return @end in this case.
         
     types: ["space","wall","start","end"] # Types array, allows us to lookup terrain types. Index matches with the terrain type, and can be used in conjunction with out nodes to display a map.
@@ -72,7 +70,6 @@ gameState = # Used to setup the game space for our level, several of these can b
         console.time "setup" # Debug timer to see how long it takes to setup the level.
 
         @world = new World(32,100,100)
-        console.log("Return of validReference for -1,-1 is #{@world.map.validReference(-1,-1)}")
 
         @viewport = new jaws.Viewport
             max_x: @world.bounds.width
