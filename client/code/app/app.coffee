@@ -13,7 +13,7 @@ class window.Map
     
         @data[0][@h-1] = 2; @data[@w-1][0] = 3 # Set Start in bottom left, End in top right.Start = 2, End = 3.
 
-        return this # Explicitally return this, otherwise it will default to return @end in this case.
+        return this # Explicitally return this
         
     types: ["space","wall","start","end"] # Types array, allows us to lookup terrain types. Index matches with the terrain type, and can be used in conjunction with out nodes to display a map.
         
@@ -36,7 +36,7 @@ class window.Map
     getCellType: (x,y) -> # Check the terrain type of a given cell, given by (x,y)
         if @validReference(x,y) # Validate the the given co-ordinates before proceeding.
             #value = @map[x-1][y-1] # Get the value of the cell at the given location. x-1, and y-1 are used because input is 1-n based, and the array is 0-(n-1) based.    
-            return @types[@map[x-1][y-1]] # Use the previously defined types array, use the value from the cell to return the string which corresponds to it's type. Eg, value of 1, would result in "wall"
+            return @types[@data[x-1][y-1]] # Use the previously defined types array, use the value from the cell to return the string which corresponds to it's type. Eg, value of 1, would result in "wall"
 
 class window.World
     constructor: (@res, @width, @height)->
