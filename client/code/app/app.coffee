@@ -1,17 +1,17 @@
 document.title = '2DMapGeneration by Ashley Williamson'
 
 class window.Map
-    constructor: (@w,@h,@name) ->
+    constructor: (@w,@h) ->
         # Generate our 2D Array, with weighted, rounded, random values.
         # This allows us to ensure that we will have majority walkable space within the map.
         # Random for now produces 1's or 0's to populate the array.
         # This will cycle thus: for x < @w, x++.
         # Put all this information into a 2D Array, this.data.
 
-        @data = (Math.round(Math.random()-0.25) for x in [0...@w] for y in [0...@h])
-        #@data = (cell = 1 for x in [0...@w] for y in [0...@h]) # Generate a fully walled map
+        #@data = (Math.round(Math.random()-0.25) for x in [0...@w] for y in [0...@h])
+        @data = (cell = 1 for x in [0...@w] for y in [0...@h]) # Generate a fully walled map
     
-        @data[0][@h-1] = 2; @data[@w-1][0] = 3 # Set Start in bottom left, End in top right.Start = 2, End = 3.
+        #@data[0][@h-1] = 2; @data[@w-1][0] = 3 # Set Start in bottom left, End in top right.Start = 2, End = 3.
 
         return this # Explicitally return this
         
@@ -60,6 +60,25 @@ class window.World
 
         @tiles.push(@blocks) #Push our blocks, 'walls', to this tileMap so we can render later.
 
+class Room
+    constructor: (@world,@rooms) ->
+
+        maxSize = [Math.floor(@world.width/10),Math.floor(@world.height/10)]
+        minSize = [1,1]
+
+        if @rooms.length <= 0 ->
+            # Initial setup of the first room, needs to be rather large perhaps?
+
+            @roomCenter = [Math.ceil(@world.width/2),Math.ceil(@world.height/2)]
+            randSize = [randInt(minSize[0],maxSize[0]), randInt(minSize[1],maxSize[1])]
+            upperLeft = [@roomCenter[0]-randSize[0],@roomCenter[1]-randSize[1]]
+            @data = (cell = 0 for x in [upperLeft[0]..upperLeft[0]+2*[randSize[0]]] for y in [upperLeft[1]..upperLeft[1]+2*[randSize[1]]])
+
+
+        else if @rooms.length > 0 ->
+
+    randInt: (min,max) ->
+        Math.floor(Math.random()*(max-min+1))+min
 
 
 
