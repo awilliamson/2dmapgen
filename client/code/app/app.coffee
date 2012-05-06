@@ -66,7 +66,7 @@ class Room
         maxSize = [Math.floor(@world.width/10),Math.floor(@world.height/10)]
         minSize = [1,1]
 
-        if @rooms.length <= 0 ->
+        if @rooms.length <= 0
             # Initial setup of the first room, needs to be rather large perhaps?
 
             @roomCenter = [Math.ceil(@world.width/2),Math.ceil(@world.height/2)]
@@ -75,7 +75,7 @@ class Room
             @data = (cell = 0 for x in [upperLeft[0]..upperLeft[0]+2*[randSize[0]]] for y in [upperLeft[1]..upperLeft[1]+2*[randSize[1]]])
 
 
-        else if @rooms.length > 0 ->
+        #else if @rooms.length > 0
 
     randInt: (min,max) ->
         Math.floor(Math.random()*(max-min+1))+min
