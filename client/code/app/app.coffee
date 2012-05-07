@@ -13,12 +13,20 @@ class window.Map
     
         #@data[0][@h-1] = 2; @data[@w-1][0] = 3 # Set Start in bottom left, End in top right.Start = 2, End = 3.
 
+        @makeRooms()
+
         return this # Explicitally return this
         
     types: ["space","wall","start","end"] # Types array, allows us to lookup terrain types. Index matches with the terrain type, and can be used in conjunction with out nodes to display a map.
-        
+
+    makeRooms: ->
+        @roomsArray = []
+        @availCells = []
+
+        @rooms = new RoomGen(@w,@h,@data,@roomsArray,@availCells)
+
     validReference: (x,y) -> # Validate a cell, given by (x,y)
-        return (x <= @w & x > 0) and (y <= @h & x > 0) # If both x and y are within the upper bounds, and are greater than 0, this will return True, only in that case.
+        return (x < @w & x >= 0) and (y < @h & x >= 0) # If both x and y are within the upper bounds, and are greater than 0, this will return True, only in that case.
 
     getCoordByType: (type) -> # Get an array containing cell positions of all cells that have a terrain type,'type', and return it.
         console.time 'getCoordByType' # Used to debug how long it will take to sort all of the cells within the map, this is given by xy.
@@ -35,8 +43,7 @@ class window.Map
         
     getCellType: (x,y) -> # Check the terrain type of a given cell, given by (x,y)
         if @validReference(x,y) # Validate the the given co-ordinates before proceeding.
-            #value = @map[x-1][y-1] # Get the value of the cell at the given location. x-1, and y-1 are used because input is 1-n based, and the array is 0-(n-1) based.    
-            return @types[@data[x-1][y-1]] # Use the previously defined types array, use the value from the cell to return the string which corresponds to it's type. Eg, value of 1, would result in "wall"
+            return @types[@data[x][y]]
 
 class window.World
     constructor: (@res, @width, @height)->
@@ -60,25 +67,45 @@ class window.World
 
         @tiles.push(@blocks) #Push our blocks, 'walls', to this tileMap so we can render later.
 
-class Room
-    constructor: (@world,@rooms) ->
+class RoomGen
+    constructor: (@w,@h,@data,@rooms,@cells) ->
 
-        maxSize = [Math.floor(@world.width/10),Math.floor(@world.height/10)]
+        maxSize = [Math.floor(@w/20),Math.floor(@h/20)]
         minSize = [1,1]
 
         if @rooms.length <= 0
+            console.time 'initialRoom'
             # Initial setup of the first room, needs to be rather large perhaps?
 
-            @roomCenter = [Math.ceil(@world.width/2),Math.ceil(@world.height/2)]
-            randSize = [randInt(minSize[0],maxSize[0]), randInt(minSize[1],maxSize[1])]
-            upperLeft = [@roomCenter[0]-randSize[0],@roomCenter[1]-randSize[1]]
-            @data = (cell = 0 for x in [upperLeft[0]..upperLeft[0]+2*[randSize[0]]] for y in [upperLeft[1]..upperLeft[1]+2*[randSize[1]]])
+            @roomCenter = [Math.ceil(@w/2),Math.ceil(@h/2)]
+            @randSize = [@randInt(minSize[0],maxSize[0]), @randInt(minSize[1],maxSize[1])]
+            console.log("Room center is at (#{@roomCenter[0]},#{@roomCenter[1]})")
+            console.log("Random Size is (#{@randSize[0]},#{@randSize[1]})")
+            @upperLeft = [@roomCenter[0]-@randSize[0],@roomCenter[1]-@randSize[1]]
+            for x in [@upperLeft[0]..(@upperLeft[0]+2*[@randSize[0]])] 
+                for y in [@upperLeft[1]..(@upperLeft[1]+2*[@randSize[1]])]
+                    @data[x][y] = 0
+                    @getAdj(x,y,@cells)
 
+            console.log(@cells)
+
+            console.timeEnd 'initialRoom'
 
         #else if @rooms.length > 0
 
     randInt: (min,max) ->
         Math.floor(Math.random()*(max-min+1))+min
+
+    getAdj: (x,y,@cells) ->
+        console.time 'getNeighbours'
+        for i in [(x-1)..(x+1)] 
+            for j in [(y-1)..(y+1)]
+                if @data[i][j] is 1
+                    @cells.push([i,j])
+
+        console.timeEnd 'getNeighbours'
+
+
 
 
 
@@ -98,8 +125,8 @@ gameState = # Used to setup the game space for our level, several of these can b
 
         @player = new jaws.Sprite # Create a player
             image: "/img/player.png" # Setup parameters for the player. Player.png is 30x30, to avoid collision issues, and such.
-            x: 400
-            y: 400
+            x: 16 + 50*32
+            y: 16 + 50*32
             anchor: "center"
 
         @player.can_move = true

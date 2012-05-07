@@ -20,9 +20,9 @@ describe 'Map Data', ->
 		if expect(@map.data.length).to.equal(10)
 			expect(@map.data[i].length).to.equal(10) for i in [0...@map.data.length]
 
-	it 'Should have Start and End Locations set correctly', ->
-		expect(@map.data[0][9]).to.equal(2)
-		expect(@map.data[9][0]).to.equal(3)
+	#it 'Should have Start and End Locations set correctly', ->
+	#	expect(@map.data[0][9]).to.equal(2)
+	#	expect(@map.data[9][0]).to.equal(3)
 
 describe 'Terrain Types', ->
 
@@ -42,24 +42,24 @@ describe 'Terrain Types', ->
 
 describe 'Valid Reference Function', ->
 
-	array = [ [1,1], [0,0], [10,10], [5,5] ]
-	valids = [1,0,1,1]
+	array = [ [1,1], [0,0], [10,10], [5,5], [-1,-1] ]
+	valids = [1,1,0,1,0]
 
-	it 'Should return correct response for inputted co-ordinates, in human form', ->
+	it 'Should return correct response for inputted co-ordinates', ->
 		expect(@map.validReference(array[i][0],array[i][1])).to.equal(valids[i]) for i in [0...array.length]
 
-describe 'getCellType', ->
+#describe 'getCellType', ->
 
-	it 'Should return the value of the cell at the given co-ordinates', ->
-	    	
-	    start = @map.getCellType(1,10)
-	    end = @map.getCellType(10,1)
+	#it 'Should return the value of the cell at the given co-ordinates', ->
+	#    	
+	#    start = @map.getCellType(0,9)
+	#    end = @map.getCellType(9,0)
 
-	    expect(start).to.be.a('string')
-	    expect(start).to.equal('start')
+	#    expect(start).to.be.a('string')
+	#    expect(start).to.equal('start')
 
-	    expect(end).to.be.a('string')
-	    expect(end).to.equal('end')
+	#    expect(end).to.be.a('string')
+	#    expect(end).to.equal('end')
 
 describe 'getCoordByType', ->
 
@@ -84,5 +84,52 @@ describe 'World', ->
 	it 'Should have correct values for arguments passed to it', ->
 		expect(@world).to.have.property(args[i]).to.be.equal(argVals[i]) for i in [0...args.length]
 
+	it 'Should have a property, map, and be of type, object', ->
+		expect(@world).to.have.property('map').to.be.a('object')
 
+	it 'Should have a property, bounds, and be of type, object', ->
+		expect(@world).to.have.property('bounds').to.be.a('object')
 
+	it 'Should have a property, tiles, and be of type, object', ->
+		expect(@world).to.have.property('tiles').to.be.a('object')
+
+	it 'Should have a property, blocks, and be of type, object', ->
+		expect(@world).to.have.property('blocks').to.be.a('object')
+
+describe 'Initial Room', ->
+
+	it 'Should have arrays, roomsArray, and, availCells', ->
+
+		expect(@world.map).to.have.property('roomsArray').to.be.a('array')
+		expect(@world.map).to.have.property('availCells').to.be.a('array')
+
+	it 'Should make an initial room, and be an object', ->
+		expect(@world.map).to.have.property('rooms').to.be.a('object')
+
+	it 'Should be in the center', ->
+		expect(@world.map.rooms.roomCenter[i]).to.equal(5) for i in [0..1]
+
+	it 'Should have randInt outputting a value within bounds', ->
+		for i in [0..10] 
+			for j in [0..10]
+				if i < j
+					expect(@world.map.rooms.randInt(i,j)).to.be.within(i,j)
+
+	it 'Should calculate upperLeft corner correctly', ->
+		expect(@world.map.rooms.upperLeft[i]).to.equal(@world.map.rooms.roomCenter[i]-@world.map.rooms.randSize[i]) for i in [0..1]
+
+	it 'Should have correct dimensions', ->
+		expect(@world.map.data[x][y]).to.equal(0) for x in [@world.map.rooms.upperLeft[0]..(@world.map.rooms.upperLeft[0]+2*[@world.map.rooms.randSize[0]])] for y in [@world.map.rooms.upperLeft[1]..(@world.map.rooms.upperLeft[1]+2*[@world.map.rooms.randSize[1]])]
+
+	it 'Should get perimeter of room correctly', ->
+		@cells = []
+		@data = (cell = 1 for x in [0...10] for y in [0...10])
+		@data[x][y] = 0 for x in [3..4] for y in [3..4]
+		console.log(@data)
+
+		for x in [3..4]
+			for y in [3..4]
+				@world.map.rooms.getAdj(x,y,@cells)
+
+		if expect(@cells).to.be.a('array')
+			expect(@cells.length).to.equal(12)
