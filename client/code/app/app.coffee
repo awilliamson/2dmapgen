@@ -1,53 +1,8 @@
-document.title = '2DMapGeneration by Ashley Williamson'
-
-class window.Map
-    constructor: (@w,@h) ->
-        # Generate our 2D Array, with weighted, rounded, random values.
-        # This allows us to ensure that we will have majority walkable space within the map.
-        # Random for now produces 1's or 0's to populate the array.
-        # This will cycle thus: for x < @w, x++.
-        # Put all this information into a 2D Array, this.data.
-
-        #@data = (Math.round(Math.random()-0.25) for x in [0...@w] for y in [0...@h])
-        @data = (cell = 1 for x in [0...@w] for y in [0...@h]) # Generate a fully walled map
-    
-        #@data[0][@h-1] = 2; @data[@w-1][0] = 3 # Set Start in bottom left, End in top right.Start = 2, End = 3.
-
-        @makeRooms()
-
-        return this # Explicitally return this
-        
-    types: ["space","wall","start","end"] # Types array, allows us to lookup terrain types. Index matches with the terrain type, and can be used in conjunction with out nodes to display a map.
-
-    makeRooms: ->
-        @roomsArray = []
-        @availCells = []
-
-        @rooms = new RoomGen(@w,@h,@data,@roomsArray,@availCells)
-
-    validReference: (x,y) -> # Validate a cell, given by (x,y)
-        return (x < @w & x >= 0) and (y < @h & x >= 0) # If both x and y are within the upper bounds, and are greater than 0, this will return True, only in that case.
-
-    getCoordByType: (type) -> # Get an array containing cell positions of all cells that have a terrain type,'type', and return it.
-        console.time 'getCoordByType' # Used to debug how long it will take to sort all of the cells within the map, this is given by xy.
-
-        array = []
-        
-        for y in [0...@h] # y is iterated first to ensure proper formatting of our map for user display.
-            for x in [0...@w]
-                if @data[x][y] is type
-                    array.push([x,y])
-                    
-        console.timeEnd 'getCoordByType'
-        return array    
-        
-    getCellType: (x,y) -> # Check the terrain type of a given cell, given by (x,y)
-        if @validReference(x,y) # Validate the the given co-ordinates before proceeding.
-            return @types[@data[x][y]]
+Dungeon = require "/dungeon"
 
 class window.World
     constructor: (@res, @width, @height)->
-        @map = new Map(@width,@height) # Generate a new map Object, given x and y.
+        @map = new Dungeon(@width,@height,20) # Generate a new map Object, given x and y.
         @bounds = new jaws.Rect(0,0,@width*@res,@height*@res) # Create a jaws.Rect, this will represent the bounds of our 'world'
 
         # Tiles #
@@ -59,63 +14,19 @@ class window.World
         # Blocks
 
         @blocks = new jaws.SpriteList()
-        for coord in @map.getCoordByType(1) # For each entry in the array responsible for walls.
+        for coord in @map.getCoordByVal(' ') # For each entry in the array responsible for walls.
             @blocks.push new jaws.Sprite # Make a new sprite, and push it.
-                image: "/img/wall.png" # Setup parameters for the Sprite, args can be found in jaws documentation.
+                image: "/img/000000.gif" # Setup parameters for the Sprite, args can be found in jaws documentation.
                 x: coord[0]*@res# Use the x,y co-ordinates from each entry, *32 as our sprites are 32x32 based, ensures correct spacing.
                 y: coord[1]*@res
 
         @tiles.push(@blocks) #Push our blocks, 'walls', to this tileMap so we can render later.
 
-class RoomGen
-    constructor: (@w,@h,@data,@rooms,@cells) ->
-
-        maxSize = [Math.floor(@w/20),Math.floor(@h/20)]
-        minSize = [1,1]
-
-        if @rooms.length <= 0
-            console.time 'initialRoom'
-            # Initial setup of the first room, needs to be rather large perhaps?
-
-            @roomCenter = [Math.ceil(@w/2),Math.ceil(@h/2)]
-            @randSize = [@randInt(minSize[0],maxSize[0]), @randInt(minSize[1],maxSize[1])]
-            console.log("Room center is at (#{@roomCenter[0]},#{@roomCenter[1]})")
-            console.log("Random Size is (#{@randSize[0]},#{@randSize[1]})")
-            @upperLeft = [@roomCenter[0]-@randSize[0],@roomCenter[1]-@randSize[1]]
-            for x in [@upperLeft[0]..(@upperLeft[0]+2*[@randSize[0]])] 
-                for y in [@upperLeft[1]..(@upperLeft[1]+2*[@randSize[1]])]
-                    @data[x][y] = 0
-                    @getAdj(x,y,@cells)
-
-            console.log(@cells)
-
-            console.timeEnd 'initialRoom'
-
-        #else if @rooms.length > 0
-
-    randInt: (min,max) ->
-        Math.floor(Math.random()*(max-min+1))+min
-
-    getAdj: (x,y,@cells) ->
-        console.time 'getNeighbours'
-        for i in [(x-1)..(x+1)] 
-            for j in [(y-1)..(y+1)]
-                if @data[i][j] is 1
-                    @cells.push([i,j])
-
-        console.timeEnd 'getNeighbours'
-
-
-
-
-
-
-
 gameState = # Used to setup the game space for our level, several of these can be used for menu's etc.
     setup: -> # Called initially to setup all the level.
         console.time "setup" # Debug timer to see how long it takes to setup the level.
 
-        @world = new World(32,100,100)
+        @world = new World(4,50,50)
 
         @viewport = new jaws.Viewport
             max_x: @world.bounds.width
@@ -124,9 +35,9 @@ gameState = # Used to setup the game space for our level, several of these can b
         #@anim = new jaws.Animation {sprite_sheet: "/img/16x16.png", frame_size: [16,16]}
 
         @player = new jaws.Sprite # Create a player
-            image: "/img/player.png" # Setup parameters for the player. Player.png is 30x30, to avoid collision issues, and such.
-            x: 16 + 50*32
-            y: 16 + 50*32
+            image: "/img/FF0000.gif" # Setup parameters for the player. Player.png is 30x30, to avoid collision issues, and such.
+            x: 2 + 50*4
+            y: 2 + 50*4
             anchor: "center"
 
         @player.can_move = true
@@ -146,8 +57,6 @@ gameState = # Used to setup the game space for our level, several of these can b
                 setTimeout( 
                     -> 
                         gameState.player.can_move = true
-                        console.log("Player can now move")
-
                     , 150
                     )
 
@@ -162,20 +71,20 @@ gameState = # Used to setup the game space for our level, several of these can b
         #if @player.can_move is true ->
         if gameState.player.can_move is true
             jwerty.key "left/A", -> 
-                gameState.player.move(-32,0); gameState.player.can_move = false
+                gameState.player.move(-4,0); gameState.player.can_move = false
             jwerty.key "right/D", ->
-                gameState.player.move(32,0); gameState.player.can_move = false
+                gameState.player.move(4,0); gameState.player.can_move = false
             jwerty.key "up/W", ->
-                gameState.player.move(0,-32); gameState.player.can_move = false
+                gameState.player.move(0,-4); gameState.player.can_move = false
             jwerty.key "down/S", ->
-                gameState.player.move(0,32); gameState.player.can_move = false
+                gameState.player.move(0,4); gameState.player.can_move = false
             jwerty.key "space", ->
                 console.log("Player is now at the co-ordinates (#{gameState.player.x},#{gameState.player.y})")
 
         # For now this is how we are ensuring our player does not leave the map.
         # Buffer 16, as our tiles are 32x32, and our anchor point for a player is in the center.
         # The buffer is taken from you tile dimensions, not the image dimensions.
-        @viewport.forceInside @player, 16
+        @viewport.forceInside @player, 2
         @viewport.centerAround @player # Focus the viewpoint around the player
 
     draw: -> # Called every game tick after update
@@ -186,8 +95,8 @@ gameState = # Used to setup the game space for our level, several of these can b
 
 jaws.onload = ->
     jaws.unpack() # Unpack jaws into global 
-    jaws.assets.add(['/img/wall.png','/img/player.png','/img/16x16.png']) # Add any images we've used.
-    jaws.start(gameState) # Start our game using the level gameState
+    jaws.assets.add(['/img/wall.png','/img/player.png','/img/16x16.png','/img/0000FF.gif','/img/000000.gif','/img/FF0000.gif']) # Add any images we've used.
+    jaws.start(gameState, {width: 900, height: 500}) # Start our game using the level gameState
 
 jaws.onload()
 module.exports = gameState # CommonJS module.
