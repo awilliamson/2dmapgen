@@ -81,11 +81,15 @@ class RoomGen
             @randSize = [@randInt(minSize[0],maxSize[0]), @randInt(minSize[1],maxSize[1])]
             console.log("Room center is at (#{@roomCenter[0]},#{@roomCenter[1]})")
             console.log("Random Size is (#{@randSize[0]},#{@randSize[1]})")
+
             @upperLeft = [@roomCenter[0]-@randSize[0],@roomCenter[1]-@randSize[1]]
+
             for x in [@upperLeft[0]..(@upperLeft[0]+2*[@randSize[0]])] 
                 for y in [@upperLeft[1]..(@upperLeft[1]+2*[@randSize[1]])]
                     @data[x][y] = 0
-                    @getAdj(x,y,@cells)
+            #        @getAdj(x,y,@cells)
+
+            @getAdj(@roomCenter,@randSize,@upperLeft,@data,@cells)
 
             console.log(@cells)
 
@@ -96,12 +100,29 @@ class RoomGen
     randInt: (min,max) ->
         Math.floor(Math.random()*(max-min+1))+min
 
-    getAdj: (x,y,@cells) ->
+    getAdj: (@roomCenter,@randSize,@upperLeft,@data,@cells) ->
+
+
         console.time 'getNeighbours'
-        for i in [(x-1)..(x+1)] 
-            for j in [(y-1)..(y+1)]
-                if @data[i][j] is 1
-                    @cells.push([i,j])
+
+        xRange = [(@upperLeft[0]-1)..((@upperLeft[0]+2*[@randSize[0]])+1)]
+        yRange = [(@upperLeft[1]-1)..((@upperLeft[1]+2*[@randSize[1]])+1)]
+
+        filterIndex = [0,xRange.length-1,(xRange.length-1)*yRange-2)+!,(xRange.length-1)*yRange-1]
+
+        for x in xRange
+            for y in yRange
+                if @data[x][y] is 1
+                    @cells.push([x,y])
+
+        console.log(i) for i in range
+
+
+
+        #for i in [(x-1)..(x+1)] 
+        #    for j in [(y-1)..(y+1)]
+        #        if @data[i][j] is 1
+        #            @cells.push([i,j])
 
         console.timeEnd 'getNeighbours'
 

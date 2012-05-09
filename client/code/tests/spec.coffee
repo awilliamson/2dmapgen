@@ -124,12 +124,12 @@ describe 'Initial Room', ->
 	it 'Should get perimeter of room correctly', ->
 		@cells = []
 		@data = (cell = 1 for x in [0...10] for y in [0...10])
-		@data[x][y] = 0 for x in [3..4] for y in [3..4]
-		console.log(@data)
+		@data[x][y] = 0 for x in [3..5] for y in [3..5]
+		@roomCenter = [4,4]
+		@randSize = [1,1]
+		@upperLeft = [3,3]
 
-		for x in [3..4]
-			for y in [3..4]
-				@world.map.rooms.getAdj(x,y,@cells)
+		@world.map.rooms.getAdj(@roomCenter,@randSize,@upperLeft,@data,@cells)
 
 		if expect(@cells).to.be.a('array')
-			expect(@cells.length).to.equal(12)
+			expect(@cells.length).to.equal(16)
