@@ -1,5 +1,3 @@
-document.title = '2DMapGeneration by Ashley Williamson'
-
 class window.Map
     constructor: (@w,@h) ->
         # Generate our 2D Array, with weighted, rounded, random values.
@@ -108,14 +106,13 @@ class RoomGen
         xRange = [(@upperLeft[0]-1)..((@upperLeft[0]+2*[@randSize[0]])+1)]
         yRange = [(@upperLeft[1]-1)..((@upperLeft[1]+2*[@randSize[1]])+1)]
 
-        filterIndex = [0,xRange.length-1,(xRange.length-1)*yRange-2)+!,(xRange.length-1)*yRange-1]
+        filterIndex = [0,xRange.length-1,(xRange.length-1)*yRange-2+1,(xRange.length-1)*yRange-1]
 
         for x in xRange
             for y in yRange
                 if @data[x][y] is 1
                     @cells.push([x,y])
 
-        console.log(i) for i in range
 
 
 
