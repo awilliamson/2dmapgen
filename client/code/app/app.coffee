@@ -1,51 +1,8 @@
-class window.Map
-    constructor: (@w,@h) ->
-        # Generate our 2D Array, with weighted, rounded, random values.
-        # This allows us to ensure that we will have majority walkable space within the map.
-        # Random for now produces 1's or 0's to populate the array.
-        # This will cycle thus: for x < @w, x++.
-        # Put all this information into a 2D Array, this.data.
-
-        #@data = (Math.round(Math.random()-0.25) for x in [0...@w] for y in [0...@h])
-        @data = (cell = 1 for x in [0...@w] for y in [0...@h]) # Generate a fully walled map
-    
-        #@data[0][@h-1] = 2; @data[@w-1][0] = 3 # Set Start in bottom left, End in top right.Start = 2, End = 3.
-
-        @makeRooms()
-
-        return this # Explicitally return this
-        
-    types: ["space","wall","start","end"] # Types array, allows us to lookup terrain types. Index matches with the terrain type, and can be used in conjunction with out nodes to display a map.
-
-    makeRooms: ->
-        @roomsArray = []
-        @availCells = []
-
-        @rooms = new RoomGen(@w,@h,@data,@roomsArray,@availCells)
-
-    validReference: (x,y) -> # Validate a cell, given by (x,y)
-        return (x < @w & x >= 0) and (y < @h & x >= 0) # If both x and y are within the upper bounds, and are greater than 0, this will return True, only in that case.
-
-    getCoordByType: (type) -> # Get an array containing cell positions of all cells that have a terrain type,'type', and return it.
-        console.time 'getCoordByType' # Used to debug how long it will take to sort all of the cells within the map, this is given by xy.
-
-        array = []
-        
-        for y in [0...@h] # y is iterated first to ensure proper formatting of our map for user display.
-            for x in [0...@w]
-                if @data[x][y] is type
-                    array.push([x,y])
-                    
-        console.timeEnd 'getCoordByType'
-        return array    
-        
-    getCellType: (x,y) -> # Check the terrain type of a given cell, given by (x,y)
-        if @validReference(x,y) # Validate the the given co-ordinates before proceeding.
-            return @types[@data[x][y]]
+Dungeon = require '/dungeon'
 
 class window.World
     constructor: (@res, @width, @height)->
-        @map = new Map(@width,@height) # Generate a new map Object, given x and y.
+        @map = new Dungeon(@width,@height) # Generate a new map Object, given x and y.
         @bounds = new jaws.Rect(0,0,@width*@res,@height*@res) # Create a jaws.Rect, this will represent the bounds of our 'world'
 
         # Tiles #
@@ -64,70 +21,6 @@ class window.World
                 y: coord[1]*@res
 
         @tiles.push(@blocks) #Push our blocks, 'walls', to this tileMap so we can render later.
-
-class RoomGen
-    constructor: (@w,@h,@data,@rooms,@cells) ->
-
-        maxSize = [Math.floor(@w/20),Math.floor(@h/20)]
-        minSize = [1,1]
-
-        if @rooms.length <= 0
-            console.time 'initialRoom'
-            # Initial setup of the first room, needs to be rather large perhaps?
-
-            @roomCenter = [Math.ceil(@w/2),Math.ceil(@h/2)]
-            @randSize = [@randInt(minSize[0],maxSize[0]), @randInt(minSize[1],maxSize[1])]
-            console.log("Room center is at (#{@roomCenter[0]},#{@roomCenter[1]})")
-            console.log("Random Size is (#{@randSize[0]},#{@randSize[1]})")
-
-            @upperLeft = [@roomCenter[0]-@randSize[0],@roomCenter[1]-@randSize[1]]
-
-            for x in [@upperLeft[0]..(@upperLeft[0]+2*[@randSize[0]])] 
-                for y in [@upperLeft[1]..(@upperLeft[1]+2*[@randSize[1]])]
-                    @data[x][y] = 0
-            #        @getAdj(x,y,@cells)
-
-            @getAdj(@roomCenter,@randSize,@upperLeft,@data,@cells)
-
-            console.log(@cells)
-
-            console.timeEnd 'initialRoom'
-
-        #else if @rooms.length > 0
-
-    randInt: (min,max) ->
-        Math.floor(Math.random()*(max-min+1))+min
-
-    getAdj: (@roomCenter,@randSize,@upperLeft,@data,@cells) ->
-
-
-        console.time 'getNeighbours'
-
-        xRange = [(@upperLeft[0]-1)..((@upperLeft[0]+2*[@randSize[0]])+1)]
-        yRange = [(@upperLeft[1]-1)..((@upperLeft[1]+2*[@randSize[1]])+1)]
-
-        filterIndex = [0,xRange.length-1,(xRange.length-1)*yRange-2+1,(xRange.length-1)*yRange-1]
-
-        for x in xRange
-            for y in yRange
-                if @data[x][y] is 1
-                    @cells.push([x,y])
-
-
-
-
-        #for i in [(x-1)..(x+1)] 
-        #    for j in [(y-1)..(y+1)]
-        #        if @data[i][j] is 1
-        #            @cells.push([i,j])
-
-        console.timeEnd 'getNeighbours'
-
-
-
-
-
-
 
 gameState = # Used to setup the game space for our level, several of these can be used for menu's etc.
     setup: -> # Called initially to setup all the level.
@@ -164,8 +57,6 @@ gameState = # Used to setup the game space for our level, several of these can b
                 setTimeout( 
                     -> 
                         gameState.player.can_move = true
-                        console.log("Player can now move")
-
                     , 150
                     )
 
@@ -208,4 +99,5 @@ jaws.onload = ->
     jaws.start(gameState) # Start our game using the level gameState
 
 jaws.onload()
+
 module.exports = gameState # CommonJS module.
