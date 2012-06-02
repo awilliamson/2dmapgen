@@ -6,73 +6,92 @@ class Dungeon
 
 		if @data
 			rooms = 0
-			@makeRooms(rooms)
+			attempts = 0
+			@makeRooms(rooms,attempts)
 
-	types: ['space','wall','start','end']
+	#types: ['space','wall','start','end']
 
 	constructMap: (w,h) ->
 		(1 for x in [0...w] for y in [0...h])
 
 
+	dig: (type,startPos) ->
+		if type? is "room" or 0
+			console.log("Room")
+		if type? is "corridor" or 1
+			console.log("Corridor")
+		else
+			return -1
 
-	makeRooms: (rooms)->
 
-		len = @w - 1
-		height = @h - 1
+	makeRooms: (rooms,attempts)->
+		if attempts <= 250
 
-		max = [len/20,height/20].map (item) => Math.floor(item)
-		min = [2,2]
+			len = @w - 1
+			height = @h - 1
 
-		console.log("Max is currently #{max}")
-		console.log("Min is currently #{min}")
-		randomSize = []
-		randomSize.push(@randInt(min[i],max[i])) for i in [0...max.length]
-		#randomSize.push(@randInt(min[i],max[i])) for i in max
-		console.log("RandomSize #{randomSize}")
+			max = [len/20,height/20].map (item) => Math.floor(item)
+			min = [2,2]
 
-		if rooms <= 0
+			randomSize = []
+			randomSize.push(@randInt(min[i],max[i])) for i in [0...max.length]
 
-			console.log("Entered rooms <= 0 loop")
+			if rooms <= 0
 
-			roomStart = [Math.ceil(len/2), Math.ceil(height/2)]
 
-			console.log("RoomStart #{roomStart}")
-
-			for x in [roomStart[0]..(roomStart[0]+randomSize[0])]
-				for y in [roomStart[1]..(roomStart[1]+randomSize[1])]
-					@data[x][y] = 0
-
-			@cells = @getAdj(roomStart,randomSize)
-			rooms += 1
-			console.log("Rooms is now at #{rooms}")
-			@makeRooms(rooms)
-
-		else if rooms > 0 and rooms < 10
-
-			console.log("Entered rooms > 0 loop")
-			console.log("Cell Length #{@cells.length}")
-
-			roomStart = @cells[@randInt(0,@cells.length-1)]
-			console.log("roomStart is #{roomStart}")
-
-			if @roomIntersection(roomStart,randomSize) is false
+				roomStart = [Math.ceil(len/2), Math.ceil(height/2)] # This will be the top left of le room
 
 				for x in [roomStart[0]..(roomStart[0]+randomSize[0])]
 					for y in [roomStart[1]..(roomStart[1]+randomSize[1])]
 						@data[x][y] = 0
 
-
+				console.log("RoomStart at #{roomStart}")
+				console.log("randomSize at #{randomSize}")
 				@cells = @getAdj(roomStart,randomSize)
-				rooms += 1
-				console.log("Rooms is now at #{rooms}")
 
-			@makeRooms(rooms)
+				for item in @cells #Highlight Adj cells for debug.
+					@data[item[0]][item[1]] = 2
+
+				rooms += 1
+				@makeRooms(rooms,attempts)
+
+			else if rooms > 0 and rooms < 30
+
+				console.log("Entered rooms > 0 loop")
+				console.log("Cell Length #{@cells.length}")
+
+				if @cells?
+					roomStart = @cells[@randInt(0,@cells.length-1)]
+				console.log("roomStart is #{roomStart}")
+
+				console.log("Room Intersection is #{@roomIntersection(roomStart,randomSize)}")
+
+				if @roomIntersection(roomStart,randomSize) is false
+
+					for x in [roomStart[0]..(roomStart[0]+randomSize[0])]
+						for y in [roomStart[1]..(roomStart[1]+randomSize[1])]
+							@data[x][y] = 0
+
+
+					@cells = @getAdj(roomStart,randomSize)
+					rooms += 1
+					console.log("Rooms is now at #{rooms}")
+				else if @roomIntersection(roomStart,randomSize) is true
+
+					attempts += 1
+
+				for item in @cells # Highlight Adj cells for debug
+						@data[item[0]][item[1]] = 2
+
+				@makeRooms(rooms,attempts)
+		else if attempts > 250
+			console.log("Maximum number of attempts reached")
 
 
 	roomIntersection: (roomStart,randomSize) ->
 
-		for x in [roomStart[0]..(roomStart[0]+randomSize[0])]
-			for y in [roomStart[1]..(roomStart[1]+randomSize[1])]
+		for x in [roomStart[0]-1..(roomStart[0]+randomSize[0]+1)] #-1 and +1 ensure wall spaces between every room that's checked.
+			for y in [roomStart[1]-1..(roomStart[1]+randomSize[1]+1)]
 				if @validReference(x,y)
 					if @data[x][y] is 0
 						return true
@@ -88,16 +107,21 @@ class Dungeon
 
 		cells = []
 
-		for x in [roomStart[0]-1..(roomStart[0]+randomSize[0])]
-			if @data[x][y] is 1
-				cells.push([x,y])
 
-		for y in [roomStart[1]..(roomStart[0]-1+randomSize[1])]
-			if @data[x][y] is 1
-				cells.push([x,y])
+		#Inefficient i know, but i couldn't be arsed comparing Square - Corners vs Sum of 2 rects. This is easier to read.
+		for x in [roomStart[0]-1..(roomStart[0]+randomSize[0]+1)]
+			for y in [roomStart[1]..(roomStart[0]+randomSize[1])]
+				if @data[x][y] >= 1 and @validReference(x,y)
+					cells.push([x,y])
+
+		for x in [roomStart[0]..(roomStart[0]+randomSize[0])]
+			for y in [roomStart[1]-1..(roomStart[0]+randomSize[1]+1)]
+				if @data[x][y] >= 1 and @validReference(x,y)
+					cells.push([x,y])
 
 		console.log("Cells is #{cells}")
-		return cells
+		if cells?
+			return cells
 
 
 

@@ -14,13 +14,30 @@ class window.World
         # Blocks
 
         @blocks = new jaws.SpriteList()
+        @adj = new jaws.SpriteList()
+        @floor = new jaws.SpriteList()
+
         for coord in @map.getCoordByType(1) # For each entry in the array responsible for walls.
             @blocks.push new jaws.Sprite # Make a new sprite, and push it.
-                image: "/img/wall.png" # Setup parameters for the Sprite, args can be found in jaws documentation.
+                image: "/img/wall2.png" # Setup parameters for the Sprite, args can be found in jaws documentation.
                 x: coord[0]*@res# Use the x,y co-ordinates from each entry, *32 as our sprites are 32x32 based, ensures correct spacing.
                 y: coord[1]*@res
 
+        for coord in @map.getCoordByType(0)
+            @floor.push new jaws.Sprite
+                image: "/img/floor.png"
+                x: coord[0]*@res
+                y: coord[1]*@res
+
+        #Below is debug for adjacent cells.
+        for coord in @map.getCoordByType(2)
+            @adj.push new jaws.Sprite
+                image: "/img/adj.png"
+                x: coord[0]*@res
+                y: coord[1]*@res
+
         @tiles.push(@blocks) #Push our blocks, 'walls', to this tileMap so we can render later.
+        @tiles.push(@adj)
 
 gameState = # Used to setup the game space for our level, several of these can be used for menu's etc.
     setup: -> # Called initially to setup all the level.
@@ -95,7 +112,7 @@ gameState = # Used to setup the game space for our level, several of these can b
 
 jaws.onload = ->
     jaws.unpack() # Unpack jaws into global 
-    jaws.assets.add(['/img/wall.png','/img/player.png','/img/16x16.png']) # Add any images we've used.
+    jaws.assets.add(['/img/wall2.png','/img/player.png','/img/adj.png','/img/floor.png']) # Add any images we've used.
     jaws.start(gameState) # Start our game using the level gameState
 
 jaws.onload()
